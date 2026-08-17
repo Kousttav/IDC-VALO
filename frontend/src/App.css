@@ -59,7 +59,7 @@ body {
 a { color: inherit; text-decoration: none; }
 button { cursor: pointer; border: none; background: none; font: inherit; color: inherit; }
 input, textarea, select { font: inherit; color: inherit; }
-img { display: block; max-width: 100%; }
+img { display: block; max-width: 100%; height: auto; }
 
 :focus-visible { outline: 2px solid var(--ember); outline-offset: 2px; }
 
@@ -428,10 +428,11 @@ img { display: block; max-width: 100%; }
   padding: 2px 8px;
 }
 
-.team-card img { width: 56px; height: 56px; object-fit: cover; }
+.team-card img { width: 56px; height: 56px; object-fit: cover; flex-shrink: 0; }
 
 .team-logo-fallback {
   width: 56px; height: 56px;
+  flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
   background: var(--panel-raised);
   font-family: var(--font-display);
@@ -475,9 +476,10 @@ img { display: block; max-width: 100%; }
   margin-bottom: 2.5rem;
   padding-bottom: 2rem;
   border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
 }
 
-.team-header-logo { width: 74px; height: 74px; object-fit: cover; border: 1px solid var(--line-strong); }
+.team-header-logo { width: 74px; height: 74px; object-fit: cover; border: 1px solid var(--line-strong); flex-shrink: 0; }
 
 /* ====== PLAYER STRIP / CHIP ====== */
 .player-strip {
@@ -494,6 +496,7 @@ img { display: block; max-width: 100%; }
   border: 1px solid var(--line);
   padding: 0.9rem;
   transition: border-color var(--transition), transform var(--transition);
+  min-width: 0;
 }
 
 .player-chip:hover { border-color: var(--ember); transform: translateX(2px); }
@@ -525,18 +528,31 @@ img { display: block; max-width: 100%; }
 }
 .back-link:hover { color: var(--ember); }
 
+/*
+  FIX: bare `1fr` tracks combined with an aspect-ratio-driven,
+  percentage-width child (.card-3d) can hit a circular sizing case
+  in CSS Grid — the browser can't resolve "width depends on track,
+  track depends on content, content depends on aspect-ratio, which
+  depends on width" and collapses the track near 0. Using
+  `minmax(0, 1fr)` removes the ambiguous auto-sizing contribution
+  and forces a real, definite track width at every viewport.
+*/
 .player-page-grid {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 340px minmax(0, 1fr);
   gap: 3rem;
   align-items: start;
 }
 
-.card-3d-wrap { perspective: 1400px; }
+.card-3d-wrap {
+  perspective: 1400px;
+  width: 100%;
+}
 
 .card-3d {
   position: relative;
   width: 100%;
+  min-height: 380px; /* safety net so the card never renders at 0 height */
   aspect-ratio: 5 / 7;
   transform-style: preserve-3d;
   transition: transform 0.6s cubic-bezier(0.4, 0.1, 0.2, 1);
@@ -549,6 +565,7 @@ img { display: block; max-width: 100%; }
   position: absolute;
   inset: 0;
   backface-visibility: hidden;
+  overflow: hidden; /* keeps the dossier-stamp ribbon from bleeding out if the card is ever squeezed */
   background: var(--panel);
   border: 1px solid var(--tint, var(--brass));
   padding: 1.2rem;
@@ -573,11 +590,12 @@ img { display: block; max-width: 100%; }
 }
 
 .card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.8rem; }
-.card-team-logo { width: 28px; height: 28px; object-fit: cover; }
+.card-team-logo { width: 28px; height: 28px; object-fit: cover; flex-shrink: 0; }
 .card-region { font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em; color: var(--ash); }
 
 .card-art {
   flex: 1;
+  min-height: 0; /* lets a flex child with overflow:hidden actually shrink instead of forcing parent to grow */
   background: var(--panel-raised);
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
@@ -621,6 +639,7 @@ img { display: block; max-width: 100%; }
   display: inline-flex;
   border: 1px solid var(--line-strong);
   width: fit-content;
+  max-width: 100%;
 }
 
 .image-field-tabs button {
@@ -725,6 +744,7 @@ img { display: block; max-width: 100%; }
   transition: border-color var(--transition);
   text-transform: none;
   letter-spacing: normal;
+  width: 100%;
 }
 
 .form input:focus, .form textarea:focus, .form select:focus { border-color: var(--ember); }
@@ -884,7 +904,7 @@ img { display: block; max-width: 100%; }
 /* ====== ADMIN SHELL ====== */
 .admin-shell {
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 240px minmax(0, 1fr);
   align-items: start;
   gap: 1.8rem;
 }
@@ -974,7 +994,7 @@ img { display: block; max-width: 100%; }
 
 .admin-stats-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1px;
   background: var(--line);
   border: 1px solid var(--line);
@@ -987,6 +1007,7 @@ img { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  min-width: 0;
 }
 
 .admin-stat-value { font-family: var(--font-display); font-size: 1.9rem; line-height: 1; color: var(--bone); }
@@ -996,7 +1017,7 @@ img { display: block; max-width: 100%; }
 /* ====== ADMIN CARDS ====== */
 .admin-grid {
   display: grid;
-  grid-template-columns: 680px 1fr;
+  grid-template-columns: minmax(0, 680px) minmax(0, 1fr);
   gap: 1.6rem;
   align-items: start;
 }
@@ -1007,6 +1028,7 @@ img { display: block; max-width: 100%; }
   border: 1px solid var(--line);
   padding: 1.8rem 1.6rem 1.6rem;
   overflow: hidden;
+  min-width: 0;
 }
 
 .admin-card-solo { max-width: 900px; }
@@ -1037,6 +1059,7 @@ img { display: block; max-width: 100%; }
   justify-content: space-between;
   gap: 0.6rem;
   margin-bottom: 1.2rem;
+  flex-wrap: wrap;
 }
 
 .admin-card-heading h3 { margin-bottom: 0; }
@@ -1349,6 +1372,7 @@ img { display: block; max-width: 100%; }
   margin-bottom: 1.4rem;
   padding-bottom: 1.2rem;
   border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
 }
 
 .profile-view-avatar {
@@ -1356,6 +1380,7 @@ img { display: block; max-width: 100%; }
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--line-strong);
+  flex-shrink: 0;
 }
 .profile-view-avatar.fallback {
   display: flex; align-items: center; justify-content: center;
@@ -1384,22 +1409,29 @@ img { display: block; max-width: 100%; }
   margin-bottom: 0.2rem;
 }
 
-.profile-grid dd { font-size: 0.88rem; }
+.profile-grid dd { font-size: 0.88rem; word-break: break-word; }
 .profile-grid dd a { color: var(--info); }
 
 /* ====== RESPONSIVE ====== */
 @media (max-width: 960px) {
-  .player-page-grid { grid-template-columns: 1fr; }
-  .card-3d-wrap { max-width: 320px; margin: 0 auto; }
-  .admin-grid { grid-template-columns:  1fr; }
-  .admin-shell { grid-template-columns: 1fr; }
+  .player-page-grid {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 2rem;
+  }
+  .card-3d-wrap {
+    width: min(320px, 100%);
+    max-width: 320px;
+    margin: 0 auto;
+  }
+  .admin-grid { grid-template-columns: minmax(0, 1fr); }
+  .admin-shell { grid-template-columns: minmax(0, 1fr); }
   .admin-sidebar { position: static; }
   .admin-nav { flex-direction: row; flex-wrap: wrap; }
   .admin-nav button { flex: 1; min-width: 110px; justify-content: center; border-left: none; border-bottom: 2px solid transparent; }
   .admin-nav button.active { border-bottom-color: var(--ember); border-left: none; }
   .admin-sidebar-logout { text-align: center; }
-  .admin-stats-row { grid-template-columns: 1fr; }
-  .profile-grid { grid-template-columns: 1fr; }
+  .admin-stats-row { grid-template-columns: minmax(0, 1fr); }
+  .profile-grid { grid-template-columns: minmax(0, 1fr); }
   .modal-backdrop { padding: 0; align-items: stretch; }
   .modal-panel, .modal-panel.wide { max-width: none; min-height: 100vh; }
 }
@@ -1422,11 +1454,22 @@ img { display: block; max-width: 100%; }
   }
   .nav-links.is-open { transform: translateY(0); opacity: 1; pointer-events: auto; }
   .nav-links a, .nav-links button { width: 100%; padding: 0.9rem 1.5rem; }
-  .form-row, .form-row.three { grid-template-columns: 1fr; }
+  .form-row, .form-row.three { grid-template-columns: minmax(0, 1fr); }
 }
 
 @media (max-width: 600px) {
   .section { padding: 2.5rem 1.2rem; }
   .hero { padding: 4rem 1.2rem 3rem; }
   .hero-emblem { width: 108px; height: 108px; }
+  .team-grid { grid-template-columns: minmax(0, 1fr); }
+  .player-strip { grid-template-columns: minmax(0, 1fr); }
+  .pillar-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 480px) {
+  .card-3d-wrap { max-width: 260px; }
+  .card-3d { min-height: 320px; }
+  .card-art-fallback { font-size: 2.5rem; }
+  .team-header { flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+  .team-header-logo { width: 56px; height: 56px; }
 }
