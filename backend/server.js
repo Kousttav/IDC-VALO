@@ -41,7 +41,9 @@ app.use('/api/players', require('./routes/playerRoutes'));
 app.use('/api/contact', require('./routes/contactRoutes'));
 
 app.get('/', (req, res) => res.send('IDC Valorant backend running'));
-
+app.get('/api/health',(req,res)=>{
+  res.json({status: 'online',provider:'Groq',model:'GROQ_MODELS'})
+});
 /* ERROR HANDLER — catches multer + async errors so the client gets JSON, not an HTML crash page */
 app.use((err, req, res, next) => {
   console.error(err);
