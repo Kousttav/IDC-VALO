@@ -205,9 +205,9 @@ function Home() {
           <img src={idcEmblem} alt="Immortal De Campeons crest" className="hero-emblem" />
           <p className="eyebrow">DOSSIER&nbsp;// VALORANT · APAC DIVISION</p>
           <h1>
-            EVERY PLAYER
+            IMMORTAL
             <br />
-            <span className="accent-ember">ON RECORD.</span>
+            <span className="accent-ember">DE&nbsp;CAMPEONS</span>
           </h1>
           <p className="hero-copy">
             Immortal De Campeons runs its Valorant rosters like a case file — every player logged,
