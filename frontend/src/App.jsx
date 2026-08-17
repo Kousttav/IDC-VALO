@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { Routes, Route, Link, NavLink, useNavigate, useParams } from 'react-router-dom';
+import idcEmblem from './assets/idc-emblem.jpg';
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
@@ -101,6 +102,34 @@ const IMPORT_COLUMNS = [
 ];
 
 /* ============================================================
+   LOADER — plays once on first mount, "dossier booting up"
+============================================================ */
+function LoaderScreen({ onDone }) {
+  const [leaving, setLeaving] = useState(false);
+
+  useEffect(() => {
+    const leaveTimer = setTimeout(() => setLeaving(true), 1400);
+    const doneTimer = setTimeout(onDone, 1900);
+    return () => {
+      clearTimeout(leaveTimer);
+      clearTimeout(doneTimer);
+    };
+  }, [onDone]);
+
+  return (
+    <div className={`loader-screen ${leaving ? 'is-leaving' : ''}`}>
+      <div className="loader-inner">
+        <span className="loader-mark">IDC</span>
+        <div className="loader-track">
+          <span className="loader-fill" />
+        </div>
+        <p className="loader-caption">LOADING&nbsp;·&nbsp;IMMORTAL DE CAMPEONES</p>
+      </div>
+    </div>
+  );
+}
+
+/* ============================================================
    LAYOUT
 ============================================================ */
 function Navbar() {
@@ -173,11 +202,12 @@ function Home() {
       <section className="hero">
         <div className="hero-grid-lines" />
         <div className="hero-content">
+          <img src={idcEmblem} alt="Immortal De Campeons crest" className="hero-emblem" />
           <p className="eyebrow">DOSSIER&nbsp;// VALORANT · APAC DIVISION</p>
           <h1>
-            EVERY PLAYER
+            IMMORTAL
             <br />
-            <span className="accent-ember">ON RECORD.</span>
+            <span className="accent-ember">DE&nbsp;CAMPEONS</span>
           </h1>
           <p className="hero-copy">
             Immortal De Campeons runs its Valorant rosters like a case file — every player logged,
@@ -1294,6 +1324,17 @@ function AdminPanel() {
    ROOT APP
 ============================================================ */
 export default function App() {
+  const [booting, setBooting] = useState(() => !sessionStorage.getItem('idc_booted'));
+
+  const finishBoot = useCallback(() => {
+    sessionStorage.setItem('idc_booted', '1');
+    setBooting(false);
+  }, []);
+
+  if (booting) {
+    return <LoaderScreen onDone={finishBoot} />;
+  }
+
   return (
     <AuthProvider>
       <Layout>

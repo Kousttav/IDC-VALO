@@ -28,6 +28,9 @@
   --font-display: 'Bebas Neue', sans-serif;
   --font-body: 'Space Grotesk', sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
+  --font-alt:     'Exo 2', sans-serif;
+  --font-dragon:  'Cinzel Decorative', serif;
+  --font-title:   'Cinzel', serif;
 
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   --cut: 14px;
@@ -73,7 +76,7 @@ img { display: block; max-width: 100%; }
 }
 
 .eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-dragon);
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   color: var(--brass-light);
@@ -83,6 +86,85 @@ img { display: block; max-width: 100%; }
 
 .muted { color: var(--ash); font-size: 0.95rem; }
 .muted.small { font-size: 0.82rem; }
+
+/* ============================================================
+   BOOT LOADER — plays once on first mount, "dossier booting up".
+   Mirrors the IDC / gradient-scanline load screen: mark, progress
+   rail, mono caption, then a quick fade + upward release into the
+   page underneath.
+============================================================ */
+.loader-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--void);
+  background-image:
+    linear-gradient(rgba(242, 236, 224, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(242, 236, 224, 0.025) 1px, transparent 1px);
+  background-size: 42px 42px;
+  opacity: 1;
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.loader-screen.is-leaving {
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+}
+
+.loader-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  animation: loader-rise 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.loader-mark {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  color: var(--brass-light);
+  text-shadow: 0 0 18px rgba(217, 179, 120, 0.35);
+}
+
+.loader-track {
+  width: 220px;
+  height: 2px;
+  background: var(--line-strong);
+  position: relative;
+  overflow: hidden;
+}
+
+.loader-fill {
+  position: absolute;
+  inset: 0;
+  width: 40%;
+  background: linear-gradient(90deg, var(--ember), var(--brass-light), var(--info));
+  animation: loader-scan 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.loader-caption {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ash-dim);
+}
+
+@keyframes loader-rise {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes loader-scan {
+  0%   { left: -40%; }
+  100% { left: 100%; }
+}
 
 /* ====== NAV ====== */
 .nav {
@@ -215,8 +297,27 @@ img { display: block; max-width: 100%; }
 
 .hero-content { position: relative; max-width: 720px; margin: 0 auto; }
 
+/* Dragon crest, centered above the eyebrow/headline — the hero's
+   signature element, framed with the same ember glow as the rest
+   of the dossier system rather than sitting on its own. */
+.hero-emblem {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  margin: 0 auto 1.6rem;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 40%, rgba(230, 67, 43, 0.22), transparent 72%);
+  filter: drop-shadow(0 0 28px rgba(230, 67, 43, 0.4));
+  animation: emblem-settle 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes emblem-settle {
+  from { opacity: 0; transform: translateY(-14px) scale(0.94); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 .hero h1 {
-  font-family: var(--font-display);
+  font-family: var(--font-dragon);
   font-size: clamp(2.6rem, 8vw, 5rem);
   line-height: 0.98;
   letter-spacing: 0.01em;
@@ -226,6 +327,7 @@ img { display: block; max-width: 100%; }
 .accent-ember { color: var(--ember); }
 
 .hero-copy {
+  font-family: var(--font-dragon);
   font-size: 1.05rem;
   color: var(--ash);
   max-width: 520px;
@@ -1276,4 +1378,5 @@ img { display: block; max-width: 100%; }
 @media (max-width: 600px) {
   .section { padding: 2.5rem 1.2rem; }
   .hero { padding: 4rem 1.2rem 3rem; }
+  .hero-emblem { width: 108px; height: 108px; }
 }
