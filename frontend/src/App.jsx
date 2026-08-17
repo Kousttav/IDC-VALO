@@ -205,9 +205,9 @@ function Home() {
           <img src={idcEmblem} alt="Immortal De Campeons crest" className="hero-emblem" />
           <p className="eyebrow">DOSSIER&nbsp;// VALORANT · APAC DIVISION</p>
           <h1>
-            IMMORTAL
+            EVERY PLAYER
             <br />
-            <span className="accent-ember">DE&nbsp;CAMPEONS</span>
+            <span className="accent-ember">ON RECORD.</span>
           </h1>
           <p className="hero-copy">
             Immortal De Campeons runs its Valorant rosters like a case file — every player logged,
@@ -572,6 +572,65 @@ function FileField({ id, accept, onChange, fileName, placeholder = 'No file chos
   );
 }
 
+function IconLink() {
+  return <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 007.07 0l2.83-2.83a5 5 0 00-7.07-7.07l-1.5 1.5" /><path d="M14 11a5 5 0 00-7.07 0L4.1 13.83a5 5 0 007.07 7.07l1.49-1.49" /></svg>;
+}
+
+function isLikelyDriveLink(url) {
+  return /drive\.google\.com/.test(url || '');
+}
+
+/* Image source picker: upload a file OR paste a Google Drive share
+   link. The backend resolves whichever one arrives — a raw file
+   goes straight to Cloudinary, a Drive link gets pulled down and
+   pushed to Cloudinary server-side — and stores the resulting
+   Cloudinary URL in Mongo exactly like a manual upload. */
+function ImageField({ id, fileValue, onFileChange, linkValue, onLinkChange, currentPreview, placeholder = 'No file chosen' }) {
+  const [mode, setMode] = useState(linkValue ? 'link' : 'file');
+
+  const switchTo = (next) => {
+    setMode(next);
+    if (next === 'file') onLinkChange('');
+    else onFileChange(null);
+  };
+
+  return (
+    <div className="image-field">
+      <div className="image-field-tabs">
+        <button type="button" className={mode === 'file' ? 'active' : ''} onClick={() => switchTo('file')}>
+          <IconUpload /> Upload File
+        </button>
+        <button type="button" className={mode === 'link' ? 'active' : ''} onClick={() => switchTo('link')}>
+          <IconLink /> Drive Link
+        </button>
+      </div>
+
+      {mode === 'file' ? (
+        <FileField id={id} accept="image/*" onChange={(e) => onFileChange(e.target.files[0])} fileName={fileValue?.name} placeholder={placeholder} />
+      ) : (
+        <>
+          <input
+            type="url"
+            className="image-field-link-input"
+            placeholder="https://drive.google.com/file/d/…/view"
+            value={linkValue}
+            onChange={(e) => onLinkChange(e.target.value)}
+          />
+          <p className="image-field-hint">
+            {linkValue && !isLikelyDriveLink(linkValue)
+              ? "That doesn't look like a Drive link — double-check the URL."
+              : 'Share the file as "Anyone with the link" before pasting it here.'}
+          </p>
+        </>
+      )}
+
+      {currentPreview && mode === 'file' && !fileValue && (
+        <img src={currentPreview} alt="Current" className="admin-list-thumb image-field-preview" />
+      )}
+    </div>
+  );
+}
+
 /* ============================================================
    ADMIN — LOGIN
 ============================================================ */
@@ -622,6 +681,7 @@ function AdminLogin() {
 function AdminTeams({ token, teams, reload }) {
   const [form, setForm] = useState({ name: '', tagline: '', region: 'APAC', primaryColor: '#e6432b', accentColor: '#b8935a' });
   const [logoFile, setLogoFile] = useState(null);
+  const [logoDriveLink, setLogoDriveLink] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
 
@@ -633,10 +693,12 @@ function AdminTeams({ token, teams, reload }) {
       const fd = new FormData();
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       if (logoFile) fd.append('logo', logoFile);
+      else if (logoDriveLink.trim()) fd.append('logoDriveLink', logoDriveLink.trim());
       await api('/teams', { method: 'POST', body: fd, isForm: true, token });
       setMsg('Team created.');
       setForm({ name: '', tagline: '', region: 'APAC', primaryColor: '#e6432b', accentColor: '#b8935a' });
       setLogoFile(null);
+      setLogoDriveLink('');
       reload();
     } catch (err) {
       setMsg(err.message);
@@ -671,7 +733,13 @@ function AdminTeams({ token, teams, reload }) {
           </label>
         </div>
         <div className="form-label-block">Team Logo
-          <FileField id="team-logo-file" accept="image/*" onChange={(e) => setLogoFile(e.target.files[0])} fileName={logoFile?.name} />
+          <ImageField
+            id="team-logo-file"
+            fileValue={logoFile}
+            onFileChange={setLogoFile}
+            linkValue={logoDriveLink}
+            onLinkChange={setLogoDriveLink}
+          />
         </div>
         <button className="btn btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Create Team'}</button>
         {msg && <p className="form-success">{msg}</p>}
@@ -724,6 +792,7 @@ function toDateInputValue(dobStr) {
 function AdminPlayers({ token, teams, players, reload }) {
   const [form, setForm] = useState(emptyPlayerForm);
   const [picFile, setPicFile] = useState(null);
+  const [picDriveLink, setPicDriveLink] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
   const [creds, setCreds] = useState(null);
@@ -743,6 +812,7 @@ function AdminPlayers({ token, teams, players, reload }) {
     setEditingPic('');
     setForm(emptyPlayerForm);
     setPicFile(null);
+    setPicDriveLink('');
     setMsg('');
     setCreds(null);
     setFormOpen(true);
@@ -752,6 +822,7 @@ function AdminPlayers({ token, teams, players, reload }) {
     setEditingId(p._id);
     setEditingPic(p.pic || '');
     setPicFile(null);
+    setPicDriveLink('');
     setCreds(null);
     setMsg('');
     setForm({
@@ -779,6 +850,7 @@ function AdminPlayers({ token, teams, players, reload }) {
     setEditingPic('');
     setForm(emptyPlayerForm);
     setPicFile(null);
+    setPicDriveLink('');
     setMsg('');
     setCreds(null);
     setFormOpen(false);
@@ -795,6 +867,7 @@ function AdminPlayers({ token, teams, players, reload }) {
       fd.append('age', liveAge ?? '');
       if (!editingId) fd.append('timestamp', new Date().toISOString());
       if (picFile) fd.append('pic', picFile);
+      else if (picDriveLink.trim()) fd.append('picDriveLink', picDriveLink.trim());
 
       const d = editingId
         ? await api(`/players/${editingId}`, { method: 'PUT', body: fd, isForm: true, token })
@@ -808,6 +881,7 @@ function AdminPlayers({ token, teams, players, reload }) {
       }
       setForm(emptyPlayerForm);
       setPicFile(null);
+      setPicDriveLink('');
       setEditingId(null);
       setEditingPic('');
       reload();
@@ -1044,10 +1118,14 @@ function AdminPlayers({ token, teams, players, reload }) {
             </label>
 
             <div className="form-label-block">Your Pic{editingId ? ' (leave blank to keep current)' : ''}
-              {editingId && editingPic && (
-                <img src={editingPic} alt="Current" className="admin-list-thumb" style={{ marginBottom: '0.5rem' }} />
-              )}
-              <FileField id="player-pic-file" accept="image/*" onChange={(e) => setPicFile(e.target.files[0])} fileName={picFile?.name} />
+              <ImageField
+                id="player-pic-file"
+                fileValue={picFile}
+                onFileChange={setPicFile}
+                linkValue={picDriveLink}
+                onLinkChange={setPicDriveLink}
+                currentPreview={editingId ? editingPic : ''}
+              />
             </div>
 
             <div className="form-actions-row">

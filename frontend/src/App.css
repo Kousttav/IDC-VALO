@@ -614,6 +614,56 @@ img { display: block; max-width: 100%; }
   padding: 0.9rem;
 }
 
+/* ====== IMAGE FIELD (upload vs. Google Drive link) ====== */
+.image-field { display: flex; flex-direction: column; gap: 0.6rem; }
+
+.image-field-tabs {
+  display: inline-flex;
+  border: 1px solid var(--line-strong);
+  width: fit-content;
+}
+
+.image-field-tabs button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.85rem;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ash);
+  transition: all var(--transition);
+}
+
+.image-field-tabs button + button { border-left: 1px solid var(--line-strong); }
+
+.image-field-tabs button:hover { color: var(--bone); background: var(--panel-raised); }
+.image-field-tabs button.active { color: var(--ember); background: var(--panel-hi); }
+
+.image-field-link-input {
+  background: var(--panel-raised);
+  border: 1px solid var(--line-strong);
+  padding: 0.7rem 0.9rem;
+  color: var(--bone);
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  outline: none;
+  transition: border-color var(--transition);
+  clip-path: polygon(var(--cut) 0, 100% 0, 100% calc(100% - var(--cut)), calc(100% - var(--cut)) 100%, 0 100%, 0 var(--cut));
+}
+
+.image-field-link-input:focus { border-color: var(--ember); }
+
+.image-field-hint {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--ash-dim);
+  letter-spacing: 0.02em;
+}
+
+.image-field-preview { margin-top: 0.2rem; }
+
 .dossier-sheet.standalone { flex: none; margin: 1.6rem 0; }
 
 .dossier-row {
