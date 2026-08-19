@@ -3,7 +3,7 @@ const XLSX = require('xlsx');
 const crypto = require('crypto');
 const Player = require('../models/Player');
 const User = require('../models/User');
-const { uploadMulterFileToCloudinary, deleteFromCloudinary } = require('../utils/uploadToCloudinary');
+const { uploadMulterFileToCloudinary, uploadDriveLinkToCloudinary, deleteFromCloudinary } = require('../utils/uploadToCloudinary');
 
 // If accessLevel is admin/staff, make sure a matching User login exists (create or sync role).
 // Returns a plaintext password ONLY when a brand new account was generated, so the admin can hand it off once.
@@ -72,7 +72,10 @@ exports.createPlayer = async (req, res) => {
 
     if (req.file) {
       body.pic = await uploadMulterFileToCloudinary(req.file, 'idc-valorant/players');
+    } else if (body.picDriveLink && body.picDriveLink.trim()) {
+      body.pic = await uploadDriveLinkToCloudinary(body.picDriveLink.trim(), 'idc-valorant/players');
     }
+    delete body.picDriveLink;
 
     const accessLevel = body.accessLevel || 'none';
     delete body.accessLevel;
@@ -107,7 +110,12 @@ exports.updatePlayer = async (req, res) => {
       const url = await uploadMulterFileToCloudinary(req.file, 'idc-valorant/players');
       if (existing.pic) await deleteFromCloudinary(existing.pic);
       body.pic = url;
+    } else if (body.picDriveLink && body.picDriveLink.trim()) {
+      const url = await uploadDriveLinkToCloudinary(body.picDriveLink.trim(), 'idc-valorant/players');
+      if (existing.pic) await deleteFromCloudinary(existing.pic);
+      body.pic = url;
     }
+    delete body.picDriveLink;
 
     const accessLevel = body.accessLevel;
     delete body.accessLevel;
