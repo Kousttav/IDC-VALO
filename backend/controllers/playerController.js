@@ -160,7 +160,9 @@ exports.deletePlayer = async (req, res) => {
   Expected Excel / form-export columns (header row, case-insensitive):
   timestamp | email | fullName | discordUsername | age (ignored — always derived from dob) |
   contactNumber | dob (YYYY-MM-DD) | languages | ignTag | preferredServer | mainRole |
-  secondaryRole | currentRank | peakRank | trackerLink | team (team name — matched/created)
+  secondaryRole | currentRank | peakRank | trackerLink | team (team name — matched/created) |
+  <any header containing "pic"/"photo"/"image"/"drive"> (Google Drive share link — pulled
+  and uploaded to Cloudinary; column name is matched loosely since Forms/Excel headers vary)
 */
 exports.bulkImportPlayers = async (req, res) => {
   const Team = require('../models/Team');
@@ -171,7 +173,7 @@ exports.bulkImportPlayers = async (req, res) => {
     const sheet = workbook.Sheets[workbook.SheetNames[0]];
     const rows = XLSX.utils.sheet_to_json(sheet, { defval: '' });
 
-    const results = { created: 0, failed: [] };
+    const results = { created: 0, failed: [], warnings: [] };
 
     for (const [i, row] of rows.entries()) {
       try {
@@ -204,6 +206,28 @@ exports.bulkImportPlayers = async (req, res) => {
           if (!isNaN(parsed.getTime())) timestamp = parsed;
         }
 
+        // Pull the image from whichever column looks like a photo/drive-link field —
+        // match loosely since Excel/Google Forms headers vary in exact wording
+        // (e.g. "Upload Your Photo", "Profile Pic Link", "Player Picture (Drive link)").
+        let pic = undefined;
+        let picWarning = null;
+        const picKey = Object.keys(norm).find((k) => /pic|photo|image|drive/i.test(k));
+        const driveLink = picKey ? norm[picKey] : '';
+
+        if (driveLink && String(driveLink).trim()) {
+          try {
+            pic = await uploadDriveLinkToCloudinary(String(driveLink).trim(), 'idc-valorant/players');
+          } catch (picErr) {
+            // Don't fail the whole row over a bad image link — create the player without a pic,
+            // but surface exactly why in the response instead of only a server-side console.warn.
+            picWarning = `image not imported (column "${picKey}"): ${picErr.message}`;
+          }
+        } else if (!picKey) {
+          // No column even matched — dump the headers we saw so this is diagnosable
+          // straight from the API response instead of guessing.
+          picWarning = `no photo/drive-link column detected — headers found: ${Object.keys(norm).join(', ')}`;
+        }
+
         await Player.create({
           email: String(norm.email).trim().toLowerCase(),
           fullName: String(norm.fullname).trim(),
@@ -220,12 +244,19 @@ exports.bulkImportPlayers = async (req, res) => {
           trackerLink: norm.trackerlink || '',
           team: teamId,
           timestamp,
+          ...(pic ? { pic } : {}),
         });
         results.created++;
+
+        if (picWarning) {
+          results.warnings.push({ row: i + 2, warning: picWarning });
+        }
       } catch (rowErr) {
         results.failed.push({ row: i + 2, error: rowErr.message }); // +2 = header row + 1-index
       }
     }
+
+    if (results.warnings.length === 0) delete results.warnings;
 
     req.app.get('io')?.emit('player:bulk-imported', results);
     res.status(201).json(results);

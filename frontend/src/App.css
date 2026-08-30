@@ -715,7 +715,7 @@ img { display: block; max-width: 100%; height: auto; }
 .player-meta .lede { margin-bottom: 1.4rem; }
 
 /* ====== CONTACT / LOGIN / FORM ====== */
-.form { display: flex; flex-direction: column; gap: 1.1rem; }
+.form { display: flex; flex-direction: column; gap: 1.1rem; padding: 8px;}
 
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem; }
 .form-row.three { grid-template-columns: 1fr 1fr 1fr; }

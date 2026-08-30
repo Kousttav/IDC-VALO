@@ -198,6 +198,7 @@ function Home() {
   }, []);
 
   return (
+    <>
     <div>
       <section className="hero">
         <div className="hero-grid-lines" />
@@ -219,7 +220,7 @@ function Home() {
           </div>
         </div>
       </section>
-
+      <About/>
       <section className="section">
         <p className="eyebrow">FILE 01 — ACTIVE SQUADS</p>
         <h2 className="section-title">Active Squads</h2>
@@ -241,6 +242,8 @@ function Home() {
         )}
       </section>
     </div>
+    
+    </>
   );
 }
 
@@ -251,27 +254,53 @@ function About() {
   return (
     <section className="section narrow">
       <p className="eyebrow">FILE 00 — WHO WE ARE</p>
-      <h1 className="page-title">The Clan Behind the File</h1>
+
+      <h1 className="page-title">The Force Behind IDC</h1>
+
       <p className="lede">
-        Immortal De Campeons started as a group chat that couldn't stop scrimming. It's grown into a
-        multi-roster Valorant organization built on one rule: talent gets you into the room,
-        the paperwork keeps you in it.
+        Immortal De Campeons (IDC) is a competitive Valorant organization built
+        around discipline, growth, and championship ambition. From grassroots
+        talent to experienced competitors, IDC provides players with the
+        structure, coaching, and environment needed to perform at the highest
+        level while representing a banner that values excellence both in and
+        out of the server.
       </p>
+
       <div className="pillar-grid">
         <div className="pillar">
-          <span className="pillar-tag">STRUCTURE</span>
-          <h3>Every player, logged</h3>
-          <p>Shared draft pool, VOD review cadence, and a coaching staff that tracks individual improvement — not just the scoreline.</p>
+          <span className="pillar-tag">COMPETITION</span>
+
+          <h3>Built To Win</h3>
+
+          <p>
+            Every roster is assembled with one objective: competing at the
+            highest level. IDC emphasizes teamwork, preparation, and consistent
+            performance across every tournament and scrim.
+          </p>
         </div>
+
         <div className="pillar">
-          <span className="pillar-tag">DEPTH</span>
-          <h3>Built, not bought</h3>
-          <p>Multiple squads mean players move up when they're ready. The org scouts and develops rather than only buying finished rosters.</p>
+          <span className="pillar-tag">DEVELOPMENT</span>
+
+          <h3>Talent First</h3>
+
+          <p>
+            IDC invests in player growth through practice routines, VOD
+            analysis, strategic coaching, and mentorship. We believe great
+            players are developed through dedication and opportunity.
+          </p>
         </div>
+
         <div className="pillar">
-          <span className="pillar-tag">IDENTITY</span>
-          <h3>The dragon is the standard</h3>
-          <p>Show up prepared, play for the crest, and let the scoreboard do the talking.</p>
+          <span className="pillar-tag">LEGACY</span>
+
+          <h3>More Than A Team</h3>
+
+          <p>
+            IDC is a community driven by passion for esports. Every match,
+            achievement, and player contributes to a legacy built on commitment,
+            sportsmanship, and the pursuit of greatness.
+          </p>
         </div>
       </div>
     </section>
